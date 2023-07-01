@@ -21,7 +21,7 @@ using System.Collections.ObjectModel;
 using ChatUI.MVVM.ViewModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using ChatGPTConnection;
+
 
 namespace ChatUI
 {
@@ -37,7 +37,7 @@ namespace ChatUI
 			}
 		}
 
-		public event ChatGPTResponseEventHandler ResponseReceived;
+		public event MessageEventHandler MessageAdded;
 
 		public MainWindow()
 		{
@@ -116,11 +116,27 @@ namespace ChatUI
 			}
 		}
 
-		internal void OnResponseReceived(ChatGPTResponseEventArgs e)
+		internal void OnMessageAdded(MessageEventArgs e)
 		{
-			ResponseReceived?.Invoke(this, e);
+			MessageAdded?.Invoke(this, e);
 		}
 
+		public void AddOtherMessage(string mainMessage, string subMessage, string userName)
+		{
+			var vm = this.DataContext as MainViewModel;
+			vm.AddOtherMessage(mainMessage, subMessage, userName);
+		}
 
+		public void AddLoadingSpinner()
+		{
+			var vm = this.DataContext as MainViewModel;
+			vm.AddLoadingSpinner();
+		}
+
+		public void DeleteLoadingSpinner()
+		{
+			var vm = this.DataContext as MainViewModel;
+			vm.DeleteLoadingSpinner();
+		}
 	}
 }
