@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+	
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <Version>1.0</Version>
+    <Title>GHScriptGPT</Title>
+    <Description>Description of GHScriptGPT</Description>
+    <TargetExt>.gha</TargetExt>
+    <UseWpf>true</UseWpf>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+	
+  <ItemGroup>
+    <None Remove="Prompts\system_ja.txt" />
+    <None Remove="Prompts\user.txt" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <Content Include="Prompts\system_ja.txt" />
+    <Content Include="Prompts\user.txt" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Grasshopper" Version="7.4.21078.1001" IncludeAssets="compile;build" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\ChatUI\ChatUI.csproj" />
+  </ItemGroup>
+  
+  <PropertyGroup Condition="$(Configuration) == 'Debug' AND $([MSBuild]::IsOSPlatform(Windows))">
+    <StartProgram>D:\Program Files\Rhino 7\System\Rhino.exe</StartProgram>
+    <StartArguments></StartArguments>
+    <StartAction>Program</StartAction>
+  </PropertyGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<ItemGroup>
+			<MySourceFiles Include="$(TargetDir)\**" />
+		</ItemGroup>
+		<Copy SourceFiles="@(MySourceFiles)" DestinationFolder="$(USERPROFILE)\AppData\Roaming\Grasshopper\Libraries\$(ProjectName)" />
+	</Target>
+
+</Project>
