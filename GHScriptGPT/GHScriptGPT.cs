@@ -14,6 +14,7 @@ using System.Windows.Forms;
 using System.Windows.Interop;
 using ChatUI;
 using ChatGPTConnection;
+using GHScriptGPT.Prompts;
 
 namespace GHScriptGPT
 {
@@ -59,8 +60,6 @@ namespace GHScriptGPT
 			if (IsWindowOpen<ChatUI.MainWindow>()) return null;
 			MainWindow window = new ChatUI.MainWindow();
 
-			//window.ResponseReceived -= ResponseRecieved2;
-			//window.ResponseReceived += ResponseRecieved2;
 			window.MessageAdded -= MessageAdded;
 			window.MessageAdded += MessageAdded;
 
@@ -82,36 +81,83 @@ namespace GHScriptGPT
 			return false;
 		}
 
-		private void ResponseRecieved2(ChatGPTResponseModel response)
+		private void ResponseRecieved(ChatGPTResponseModel response)
 		{
+			//todo: RunScript(...){}を取り除く
 			Dictionary<string, string> jsonDict = response.GetJsonDict();
 			string conversation = jsonDict["conversation"];
 			string code = jsonDict["code"];
 
+			GH_ScriptEditor editor = GetCurrentEditor();
+			if(editor == null) return;
+
+			GH_CodeBlocks codeBlocks = editor.GetSourceCode();
+			codeBlocks[3].AddLine($"//{conversation}");
+			var lines = code.Split('\n');
+			codeBlocks[3].AddLines(lines);
+			editor.SetSourceCode(codeBlocks);
+
+
+		}
+
+		private string GetBaseCode()
+		{
+			GH_ScriptEditor editor = GetCurrentEditor();
+			if (editor == null) return null;
+			GH_CodeBlocks codeBlocks = editor.GetSourceCode();
+			var lines = codeBlocks[2].Lines;
+			lines = lines.Skip(lines.Count() - 2);
+			lines = lines.Concat(codeBlocks[3].Lines);
+			lines = lines.Append("}");
+			lines = lines.Select(text => text.TrimStart());
+			string baseCode = String.Join("\n", lines);
+			return baseCode;
+		}
+
+		private GH_ScriptEditor GetCurrentEditor()
+		{
 			var forms = System.Windows.Forms.Application.OpenForms;
 			foreach (var form in forms)
 			{
 				if (form.GetType().Name != "GH_ScriptEditor") continue;
 				GH_ScriptEditor editor = form as GH_ScriptEditor;
-				GH_CodeBlocks codeBlocks = editor.GetSourceCode();
-				codeBlocks[3].AddLine($"//{conversation}");
-				var lines = code.Split('\n');
-				codeBlocks[3].AddLines(lines);
-				editor.SetSourceCode(codeBlocks);
-				break;
+				return editor;
 			}
+			return null;
+		}
 
+		private string CreateUserPrompt(string requestMessage, string baseCode)
+		{
+			PromptTemplate template = PromptTemplate.FromFile("user.txt");
+			Dictionary<string, string> replacements= new Dictionary<string, string> 
+			{
+				{"request", requestMessage},
+				{"base", baseCode}
+			};
+			return template.FormatPrompt(replacements);
+		}
+
+		private string CreateSystemPrompt()
+		{
+			PromptTemplate template = PromptTemplate.FromFile("system_ja.txt");
+			Dictionary<string, string> replacements = new Dictionary<string, string>();
+			return template.FormatPrompt(replacements);
 		}
 
 		private async void MessageAdded(object sender, MessageEventArgs e)
 		{
-			MainWindow window = (MainWindow)sender;
-			string message = e.Message;
-			window.AddLoadingSpinner();
+			//todo: Editorが一つだけ開いているかどうかを確かめる
 
+			MainWindow window = (MainWindow)sender;
+			string requestMessage = e.Message;
+			string baseCode = GetBaseCode();
+
+			string userPrompt = CreateUserPrompt(requestMessage, baseCode);
+
+			window.AddLoadingSpinner();
 			try
 			{
-				//APIキーをセッティングファイルから取得
+				//Get API key from settings file
 				Settings settings = Settings.LoadSettings();
 				if (settings == null)
 				{
@@ -121,9 +167,8 @@ namespace GHScriptGPT
 				string apiKey = settings.APIKey;
 				string organizationID = settings.OrganizationID;
 				string modelName = settings.ModelName;
-				string systemMessage = settings.SystemMessage;
+				string systemMessage = CreateSystemPrompt();
 
-				// Check
 				if (apiKey == "")
 				{
 					System.Windows.MessageBox.Show("API key not found. Please set from the options.");
@@ -135,8 +180,9 @@ namespace GHScriptGPT
 					return;
 				}
 
+				// API request
 				var chatGPTConnector = new ChatGPTConnector(apiKey, organizationID, modelName, systemMessage);
-				var response = await chatGPTConnector.RequestAsync(message);
+				var response = await chatGPTConnector.RequestAsync(userPrompt);
 
 				if (!response.isSuccess)
 				{
@@ -145,9 +191,11 @@ namespace GHScriptGPT
 					return;
 				}
 
-				//返信をチャット欄に追加
-				//string conversationText = response.GetConversation();
-				string conversationText = response.GetMessage();
+				// Apply to editor
+				ResponseRecieved(response);
+
+				//Add reply to chat
+				string conversationText = response.GetConversation();
 				string fullText = response.GetMessage();
 				window.AddOtherMessage(conversationText, fullText, "ChatGPT");
 			}
