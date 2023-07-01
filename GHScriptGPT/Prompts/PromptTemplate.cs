@@ -18,7 +18,6 @@ namespace GHScriptGPT.Prompts
 
 		public static PromptTemplate FromFile(string filePath)
 		{
-			// ファイルからテンプレートを読み込みます。
 			string template = File.ReadAllText(filePath);
 			return new PromptTemplate(template);
 		}
@@ -27,7 +26,6 @@ namespace GHScriptGPT.Prompts
 		{
 			string result = _template;
 
-			// テンプレート内の指定したキーワードを全て置換します。
 			foreach (KeyValuePair<string, string> replacement in replacements)
 			{
 				result = Regex.Replace(result, @"\{" + replacement.Key + @"\}", replacement.Value);

@@ -58,7 +58,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </None>
-    <Compile Include="ChatGPTResponseEvent.cs" />
+    <Compile Include="MessageEvent.cs" />
     <Compile Include="CustomControls\LoadingSpinner.cs" />
     <Compile Include="Settings.cs" />
     <Page Include="ChatItem.xaml">
@@ -142,12 +142,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\cat.jpeg" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ChatGPTConnection\ChatGPTConnection.csproj">
-      <Project>{64341dba-031a-4ae2-972d-5ce86c048dab}</Project>
-      <Name>ChatGPTConnection</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\debug.png" />

@@ -1,5 +1,4 @@
-﻿using ChatGPTConnection;
-using ChatUI.Core;
+﻿using ChatUI.Core;
 using ChatUI.MVVM.Model;
 using System;
 using System.Linq;
@@ -49,8 +48,8 @@ namespace ChatUI.MVVM.ViewModel
 				//自分のメッセージを追加
 				AddMyMessages(Message);
 
-				//ChatGPTにメッセージをおくり、返信をメッセージに追加
-				SendToChatGPT(Message);
+				// run event
+				MainWindow.OnMessageAdded(new MessageEventArgs(Message));
 
 				//メッセージボックスを空にする
 				Message = "";
@@ -72,69 +71,12 @@ namespace ChatUI.MVVM.ViewModel
 			ScrollToBottom();
 		}
 
-		//TODO: 多責務になっているので分割したい
-		private ChatGPTConnector _chatGPTConnector = null;
-		private async void SendToChatGPT(string message)
-		{
-			//LoadingSpinnerを表示
-			AddLoadingSpinner();
 
-			//APIキーをセッティングファイルから取得
-			Settings settings = Settings.LoadSettings();
-			if (settings == null)
-			{
-				MessageBox.Show("Setting file is not found. Please set that from options.");
-				DeleteLoadingSpinner();
-				return;
-			}
-			string apiKey = settings.APIKey;
-			string organizationID = settings.OrganizationID;
-			string modelName = settings.ModelName;
-			string systemMessage = settings.SystemMessage;
-
-			// Check
-			if (apiKey == "")
-			{
-				MessageBox.Show("API key not found. Please set from the options.");
-				DeleteLoadingSpinner();
-				return;
-			}
-			if (modelName == "")
-			{
-				MessageBox.Show("ModelName is not setted. Please set from the options.");
-				DeleteLoadingSpinner();
-				return;
-			}
-			//ChatGPTにメッセージを送る
-			_chatGPTConnector = new ChatGPTConnector(apiKey, organizationID, modelName, systemMessage);
-			var response = await _chatGPTConnector.RequestAsync(message);
-
-			//LoadingSpinnerを削除
-			DeleteLoadingSpinner();
-
-			if (!response.isSuccess)
-			{
-				AddChatGPTMessage("API request failed. Settings may be wrong.", null);
-				return;
-			}
-
-			//返信をチャット欄に追加
-			string conversationText = response.GetConversation();
-			string fullText = response.GetMessage();
-			AddChatGPTMessage(conversationText, fullText);
-
-			//イベントを実行
-			MainWindow.OnResponseReceived(new ChatGPTResponseEventArgs(response));
-			
-		}
-
-		
-
-		private void AddChatGPTMessage(string mainMessage, string subMessage)
+		public void AddOtherMessage(string mainMessage, string subMessage, string userName)
 		{
 			Messages.Add(new MessageModel
 			{
-				Username = "ChatGPT",
+				Username = userName,
 				UsernameColor = "#738CBA",
 				ImageSource = CatIconPath,
 				Time = DateTime.Now,
@@ -154,7 +96,7 @@ namespace ChatUI.MVVM.ViewModel
 			MainWindow.ChatView.ScrollIntoView(item);
 		}
 
-		private void AddLoadingSpinner()
+		public void AddLoadingSpinner()
 		{
 			Messages.Add(new MessageModel
 			{
@@ -163,7 +105,7 @@ namespace ChatUI.MVVM.ViewModel
 			ScrollToBottom();
 		}
 
-		private void DeleteLoadingSpinner()
+		public void DeleteLoadingSpinner()
 		{
 			for (int i = 0; i < Messages.Count; i++)
 			{
