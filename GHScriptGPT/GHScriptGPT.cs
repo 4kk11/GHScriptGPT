@@ -138,7 +138,7 @@ namespace GHScriptGPT
 
 				if (!response.isSuccess)
 				{
-					window.AddOtherMessage("API request failed. Settings may be wrong.", null, "ChatGPT");
+					window.AddOtherMessage(response.errorMessage, null, "ChatGPT");
 					return;
 				}
 

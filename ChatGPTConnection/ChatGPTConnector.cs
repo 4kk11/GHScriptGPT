@@ -60,15 +60,16 @@ namespace ChatGPTConnection
 				httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
 			}
 
-			var responseString = await httpClient.PostAsync(apiUrl, new StringContent(jsonOptions, Encoding.UTF8, "application/json"));
+			var response = await httpClient.PostAsync(apiUrl, new StringContent(jsonOptions, Encoding.UTF8, "application/json"));
 
-			if (!responseString.IsSuccessStatusCode)
+			if (!response.IsSuccessStatusCode)
 			{
-				return new ChatGPTResponseModel() {isSuccess = false };	
+				var errorContent = await response.Content.ReadAsStringAsync();
+				return new ChatGPTResponseModel() {isSuccess = false , errorMessage = errorContent};	
 			}
 			else
 			{
-				var content = await responseString.Content.ReadAsStringAsync();
+				var content = await response.Content.ReadAsStringAsync();
 				var responseObject = JsonConvert.DeserializeObject<ChatGPTResponseModel>(content);
 				responseObject.isSuccess = true;
 				_messageList.Add(new ChatGPTMessageModel { role = "assistant", content = responseObject.GetMessage() });
@@ -104,6 +105,7 @@ namespace ChatGPTConnection
 		public int created;
 		public Choice[] choices;
 		public Usage usage;
+		public string errorMessage;
 
 		public class Choice
 		{
