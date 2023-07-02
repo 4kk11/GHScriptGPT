@@ -90,10 +90,19 @@ namespace GHScriptGPT
 		{
 			//todo: Editor‚ªˆê‚Â‚¾‚¯ŠJ‚¢‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ðŠm‚©‚ß‚é
 			CurrentEditor editor = CurrentEditor.GetCurrentEditor();
+			if(editor == null) return;
 
 			MainWindow window = (MainWindow)sender;
 			string requestMessage = e.Message;
 			string baseCode = editor.GetCode_RunScript().CodeText;
+
+			// Addition error info
+			IEnumerable<string> errors = editor.GetErrors();
+			if (errors.Any())
+			{
+				string errorsText = String.Join("\n", errors);
+				requestMessage = requestMessage + "\n" + errorsText;
+			}
 
 			string userPrompt = PromptTemplate.CreateUserPrompt(requestMessage, baseCode);
 			string systemPrompt = PromptTemplate.CreateSystemPrompt();
