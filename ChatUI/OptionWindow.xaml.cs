@@ -29,6 +29,20 @@ namespace ChatUI
 				TextBox_APIKey.Password= settings.APIKey;
 				TextBox_OrganizationID.Password = settings.OrganizationID;
 				TextBox_ModelName.Text = settings.ModelName;
+				SetLangage(settings.Langage);
+			}
+		}
+
+		private void SetLangage(string lang)
+		{
+			foreach (var item in ComboBox_Language.Items)
+			{ 
+				ComboBoxItem comboBoxItem = item as ComboBoxItem;
+				if (comboBoxItem.Content.ToString() == lang)
+				{
+					ComboBox_Language.SelectedItem = comboBoxItem;
+					break;
+				}
 			}
 		}
 
@@ -37,9 +51,11 @@ namespace ChatUI
 			string apiKey = TextBox_APIKey.Password;
 			string organizationID = TextBox_OrganizationID.Password;
 			string modelName = TextBox_ModelName.Text;
+			ComboBoxItem selectedLangage = (ComboBoxItem)ComboBox_Language.SelectedItem;
+			string langage = selectedLangage.Content.ToString();
 			if (apiKey == null) return;
 			//セッティングファイルをセーブ
-			Settings settings = new Settings(apiKey, organizationID, modelName);
+			Settings settings = new Settings(apiKey, organizationID, modelName, langage);
 			settings.SaveSettings();
 			this.Close();
 		}

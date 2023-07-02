@@ -6,13 +6,14 @@
         xmlns:local="clr-namespace:ChatUI"
         mc:Ignorable="d"
         Title="Settings" 
-		Height="200" Width="500"
+		Height="230" Width="500"
 		Background="#EEEEEE"
 		Topmost="True"
 		ResizeMode="NoResize"
 		WindowStartupLocation="CenterOwner">
 	<Grid>
 		<Grid.RowDefinitions>
+			<RowDefinition Height="40"/>
 			<RowDefinition Height="40"/>
 			<RowDefinition Height="40"/>
 			<RowDefinition Height="40"/>
@@ -31,20 +32,7 @@
 			       Foreground="Black"
 			       FontWeight="Bold"
 			       FontSize="14"/>
-			<!--
-			<TextBox Grid.Column="1" 
-					 x:Name="TextBox_APIKey" 
-					 HorizontalAlignment="Center" 
-					 Background="White"
-					 BorderThickness="0"
-					 Foreground="Black"
-					 Text="" 
-					 Padding="2"
-					 VerticalAlignment="Center" 
-					 Width="360"
-					 Margin="0,3,0,0"
-					 Height="20"/>
-			-->
+
 			<PasswordBox Grid.Column="1"
 						 HorizontalAlignment="Center" 
 						 x:Name="TextBox_APIKey"
@@ -111,9 +99,35 @@
 						Text="gpt-3.5-turbo"/>
 		</Grid>
 
+		<Grid Grid.Row="3">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="120"/>
+				<ColumnDefinition/>
+			</Grid.ColumnDefinitions>
+			<Label Grid.Column="0"
+			   Content="PromptLangage :" 
+			   HorizontalAlignment="Right" 
+			   VerticalAlignment="Center"
+			   Foreground="Black"
+			   FontWeight="Bold"
+			   FontSize="14"/>
+			<ComboBox Grid.Column="1"
+			  HorizontalAlignment="Center" 
+			  x:Name="ComboBox_Language"
+			  Background="White"
+			  BorderThickness="0"
+			  Foreground="Black"
+			  Padding="2"
+			  VerticalAlignment="Center" 
+			  Width="360"
+			  Margin="0,3,0,0"
+			  Height="20" IsEditable="True" IsReadOnly="True">
+				<ComboBoxItem Content="English" IsSelected="True" />
+				<ComboBoxItem Content="Japanese" />
+			</ComboBox>
+		</Grid>
 
-
-		<Button Grid.Row="3" 
+		<Button Grid.Row="4" 
 				Content="OK" 
 				HorizontalAlignment="Right" 
 				VerticalAlignment="Bottom"

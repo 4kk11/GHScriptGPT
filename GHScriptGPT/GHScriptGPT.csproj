@@ -11,11 +11,13 @@
   </PropertyGroup>
 	
   <ItemGroup>
+    <None Remove="Prompts\system_en.txt" />
     <None Remove="Prompts\system_ja.txt" />
     <None Remove="Prompts\user.txt" />
   </ItemGroup>
 	
   <ItemGroup>
+    <EmbeddedResource Include="Prompts\system_en.txt" />
     <EmbeddedResource Include="Prompts\system_ja.txt" />
     <EmbeddedResource Include="Prompts\user.txt" />
   </ItemGroup>

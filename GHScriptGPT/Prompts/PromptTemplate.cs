@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.IO;
 using System.Reflection;
+using ChatUI;
 
 namespace GHScriptGPT.Prompts
 {
@@ -57,11 +58,29 @@ namespace GHScriptGPT.Prompts
 			return template.FormatPrompt(replacements);
 		}
 
-		public static string CreateSystemPrompt()
+		public static string CreateSystemPrompt(Settings settings)
 		{
-			PromptTemplate template = PromptTemplate.FromFile("system_ja.txt");
+			string fileName = GetSystemPropmtFileName(settings);
+
+			PromptTemplate template = PromptTemplate.FromFile(fileName);
 			Dictionary<string, string> replacements = new Dictionary<string, string>();
 			return template.FormatPrompt(replacements);
+		}
+
+		private static string GetSystemPropmtFileName(Settings settings)
+		{
+			string fileName = null;
+			switch (settings.Langage)
+			{
+				case "English":
+					fileName = "system_en.txt";
+					break;
+				case "Japanese":
+					fileName = "system_ja.txt";
+					break;
+			}
+			if (fileName == null) throw new Exception("not found langage");
+			return fileName;
 		}
 
 	}

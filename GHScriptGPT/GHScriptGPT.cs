@@ -92,7 +92,7 @@ namespace GHScriptGPT
 		{
 			MainWindow window = (MainWindow)sender;
 
-			//Check if only one editor is open
+			// Get current script editor
 			CurrentEditor editor = CurrentEditor.GetCurrentEditor();
 			if (editor == null)
 			{
@@ -100,6 +100,31 @@ namespace GHScriptGPT
 				return;
 			}
 
+			// Load setting file
+			Settings settings = Settings.LoadSettings();
+			if (settings == null)
+			{
+				window.AddOtherMessage("Setting file is not found. Please set that from options.", null, "ChatGPT");
+				return;
+			}
+
+			// Get API key from settings file
+			string apiKey = settings.APIKey;
+			string organizationID = settings.OrganizationID;
+			string modelName = settings.ModelName;
+
+			if (apiKey == "")
+			{
+				window.AddOtherMessage("API key not found. Please set from the options.", null, "ChatGPT");
+				return;
+			}
+			if (modelName == "")
+			{
+				window.AddOtherMessage("ModelName is not setted. Please set from the options.", null, "ChatGPT");
+				return;
+			}
+
+			// Get the text needed to create the prompt
 			string requestMessage = e.Message;
 			string baseCode = editor.GetCode_RunScript().CodeText;
 
@@ -111,34 +136,13 @@ namespace GHScriptGPT
 				requestMessage = requestMessage + "\n" + errorsText;
 			}
 
+			// Create prompts
 			string userPrompt = PromptTemplate.CreateUserPrompt(requestMessage, baseCode);
-			string systemPrompt = PromptTemplate.CreateSystemPrompt();
+			string systemPrompt = PromptTemplate.CreateSystemPrompt(settings);
 
 			window.AddLoadingSpinner();
 			try
 			{
-				// Get API key from settings file
-				Settings settings = Settings.LoadSettings();
-				if (settings == null)
-				{
-					window.AddOtherMessage("Setting file is not found. Please set that from options.", null, "ChatGPT");
-					return;
-				}
-				string apiKey = settings.APIKey;
-				string organizationID = settings.OrganizationID;
-				string modelName = settings.ModelName;
-
-				if (apiKey == "")
-				{
-					window.AddOtherMessage("API key not found. Please set from the options.", null, "ChatGPT");
-					return;
-				}
-				if (modelName == "")
-				{
-					window.AddOtherMessage("ModelName is not setted. Please set from the options.", null, "ChatGPT");
-					return;
-				}
-
 				// API request
 				var chatGPTConnector = new ChatGPTConnector(apiKey, organizationID, modelName, systemPrompt);
 				var response = await chatGPTConnector.RequestAsync(userPrompt);
