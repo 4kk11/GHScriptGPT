@@ -58,6 +58,23 @@ namespace GHScriptGPT.Scripts
 
 		public IEnumerable<string> GetErrors()
 		{
+			IGH_DocumentObject owner = GetOwner();
+
+			var fieldInfo = owner.GetType().BaseType.GetField("_compilerErrors", BindingFlags.Instance | BindingFlags.NonPublic);
+			var errors = fieldInfo.GetValue(owner) as IEnumerable<string>;
+			return errors;
+		}
+
+		public void RunScript()
+		{
+			IGH_DocumentObject owner = GetOwner();
+			_editor.CacheCurrentScript();
+			var methodInfo = owner.GetType().BaseType.GetMethod("SourceCodeChanged", BindingFlags.Instance | BindingFlags.Public);
+			methodInfo.Invoke(owner, new object[] {_editor});
+		}
+
+		private IGH_DocumentObject GetOwner()
+		{
 			FieldInfo fieldInfo = _editor.GetType().GetField("m_objectId", BindingFlags.Instance | BindingFlags.NonPublic);
 			Guid instanceGuid = (Guid)fieldInfo.GetValue(_editor);
 
@@ -65,10 +82,7 @@ namespace GHScriptGPT.Scripts
 			GH_Document ghdoc = fieldInfo.GetValue(_editor) as GH_Document;
 
 			IGH_DocumentObject docObject = ghdoc.FindObject(instanceGuid, true);
-
-			fieldInfo = docObject.GetType().BaseType.GetField("_compilerErrors", BindingFlags.Instance | BindingFlags.NonPublic);
-			var errors = fieldInfo.GetValue(docObject) as IEnumerable<string>;
-			return errors;
+			return docObject;
 		}
 	}
 }

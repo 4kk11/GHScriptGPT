@@ -168,6 +168,7 @@ namespace GHScriptGPT
 			SouceCode souceCode = new SouceCode(codeText);
 			SouceCode extractedCode = souceCode.ExtractFunctionCode("private void RunScript");
 			editor.SetCode_RunScript(extractedCode);
+			editor.RunScript();
 		}
 
 	}
