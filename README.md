@@ -5,6 +5,10 @@
 ## Features
 
 
+## Installation
+1. Download the plugin files from the Releases section of this repository.
+2. Put it in the Grasshopper/Libraries folder.
+
 ## Usage
 #### First, configure the API key and other settings from the gear button.   
 #### After setting the API key, make sure that Settings.xml is generated in the plugin folder.   
@@ -28,7 +32,4 @@ If you do not have an editor open or have more than one editor open, you will re
 
 ![image3](https://github.com/4kk11/GHScriptGPT/assets/61794994/37e6ebb7-270a-412c-91b6-89bc1c8e544c)
 
-## Installation
-1. Download the plugin files from the Releases section of this repository.
-2. Put it in the Grasshopper/Libraries folder.
 
