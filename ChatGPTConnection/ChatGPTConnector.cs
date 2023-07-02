@@ -128,19 +128,23 @@ namespace ChatGPTConnection
 		public Dictionary<string, string> GetJsonDict()
 		{
 			string messageContent = GetMessage();
-			return JsonConvert.DeserializeObject<Dictionary<string, string>>(messageContent);
-		}
-
-		public string GetCode()
-		{
-			var jsonDict = GetJsonDict();
-			return jsonDict["code"];
-		}
-
-		public string GetConversation()
-		{
-			var jsonDict = GetJsonDict();
-			return jsonDict["conversation"];
+			try
+			{
+				var jsonDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(messageContent);
+				if (!jsonDict.ContainsKey("conversation")) throw new Exception("conversation is not found");
+				jsonDict["result"] = "Success";
+				return jsonDict;
+			}
+			catch (Exception e)
+			{
+				string exeptionMessage = e.Message;
+				var jsonDict = new Dictionary<string, string>() { };
+				jsonDict["conversation"] = exeptionMessage;
+				jsonDict["result"] = "Failure";
+				return jsonDict;
+			}
+			
+			
 		}
 	
 	}

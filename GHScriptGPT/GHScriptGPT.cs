@@ -144,11 +144,13 @@ namespace GHScriptGPT
 
 				// Get json dictionary from response
 				Dictionary<string, string> jsonDict = response.GetJsonDict();
-				string codeText = jsonDict["code"];
 				string conversationText = jsonDict["conversation"];
-
-				// Apply response code to editor
-				ApplyCode(codeText, editor);
+				if (jsonDict["result"] == "Success")
+				{			
+					string codeText = jsonDict["code"];
+					// Apply response code to editor
+					ApplyCode(codeText, editor);
+				}
 
 				// Add reply to chat
 				string fullText = response.GetMessage();
