@@ -32,6 +32,7 @@ namespace GHScriptGPT.Scripts
 
 		public SouceCode GetCode_RunScript()
 		{
+			// Get the code of the RunScript function.
 			var lines = _codeBlocks[2].Lines;
 			lines = lines.Skip(lines.Count() - 2);
 			lines = lines.Concat(_codeBlocks[3].Lines);
@@ -42,8 +43,9 @@ namespace GHScriptGPT.Scripts
 
 		public void SetCode_RunScript(SouceCode code)
 		{
-
-			_codeBlocks[3].AddLines(code.CodeLines);
+			GH_CodeBlock newCodeBlock = new GH_CodeBlock();
+			newCodeBlock.AddLines(code.CodeLines);
+			_codeBlocks[3] = newCodeBlock;
 			UpdateEditor();
 		}
 
