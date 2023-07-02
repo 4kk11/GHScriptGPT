@@ -86,13 +86,20 @@ namespace GHScriptGPT
 			return false;
 		}
 
+
+
 		private async void MessageAdded(object sender, MessageEventArgs e)
 		{
-			//todo: Editor‚ªˆê‚Â‚¾‚¯ŠJ‚¢‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ðŠm‚©‚ß‚é
-			CurrentEditor editor = CurrentEditor.GetCurrentEditor();
-			if(editor == null) return;
-
 			MainWindow window = (MainWindow)sender;
+
+			//Check if only one editor is open
+			CurrentEditor editor = CurrentEditor.GetCurrentEditor();
+			if (editor == null)
+			{
+				window.AddOtherMessage("There are no editors open, or there are more than one. Be sure to open only one.", null, "ChatGPT");
+				return;
+			}
+
 			string requestMessage = e.Message;
 			string baseCode = editor.GetCode_RunScript().CodeText;
 
@@ -114,7 +121,7 @@ namespace GHScriptGPT
 				Settings settings = Settings.LoadSettings();
 				if (settings == null)
 				{
-					System.Windows.MessageBox.Show("Setting file is not found. Please set that from options.");
+					window.AddOtherMessage("Setting file is not found. Please set that from options.", null, "ChatGPT");
 					return;
 				}
 				string apiKey = settings.APIKey;
@@ -123,12 +130,12 @@ namespace GHScriptGPT
 
 				if (apiKey == "")
 				{
-					System.Windows.MessageBox.Show("API key not found. Please set from the options.");
+					window.AddOtherMessage("API key not found. Please set from the options.", null, "ChatGPT");
 					return;
 				}
 				if (modelName == "")
 				{
-					System.Windows.MessageBox.Show("ModelName is not setted. Please set from the options.");
+					window.AddOtherMessage("ModelName is not setted. Please set from the options.", null, "ChatGPT");
 					return;
 				}
 

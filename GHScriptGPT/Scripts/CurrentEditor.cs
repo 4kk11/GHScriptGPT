@@ -21,15 +21,22 @@ namespace GHScriptGPT.Scripts
 
 		public static CurrentEditor GetCurrentEditor()
 		{
-			// todo: is current check
+			//Check if only one editor is open
 			var forms = System.Windows.Forms.Application.OpenForms;
+			GH_ScriptEditor validEditor = null;
+			
 			foreach (var form in forms)
 			{
 				if (form.GetType().Name != "GH_ScriptEditor") continue;
-				GH_ScriptEditor editor = form as GH_ScriptEditor;
-				return new CurrentEditor(editor);
+				if (validEditor != null) // Already found one, therefore more than one exists
+				{
+					return null; // return null if more than one "GH_ScriptEditor" is found
+				}
+				validEditor = form as GH_ScriptEditor; // Assign the found form to validEditor
 			}
-			return null;
+
+			// If validEditor was assigned, return a new CurrentEditor instance. Otherwise, return null.
+			return validEditor != null ? new CurrentEditor(validEditor) : null;
 		}
 
 		public SouceCode GetCode_RunScript()
