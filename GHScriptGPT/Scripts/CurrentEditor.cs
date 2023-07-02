@@ -1,7 +1,9 @@
 ﻿using Grasshopper.GUI.Script;
+using Grasshopper.Kernel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -52,6 +54,21 @@ namespace GHScriptGPT.Scripts
 		private void UpdateEditor()
 		{
 			_editor.SetSourceCode(_codeBlocks);
+		}
+
+		public IEnumerable<string> GetErrors()
+		{
+			FieldInfo fieldInfo = _editor.GetType().GetField("m_objectId", BindingFlags.Instance | BindingFlags.NonPublic);
+			Guid instanceGuid = (Guid)fieldInfo.GetValue(_editor);
+
+			fieldInfo = _editor.GetType().GetField("m_document", BindingFlags.Instance | BindingFlags.NonPublic);
+			GH_Document ghdoc = fieldInfo.GetValue(_editor) as GH_Document;
+
+			IGH_DocumentObject docObject = ghdoc.FindObject(instanceGuid, true);
+
+			fieldInfo = docObject.GetType().BaseType.GetField("_compilerErrors", BindingFlags.Instance | BindingFlags.NonPublic);
+			var errors = fieldInfo.GetValue(docObject) as IEnumerable<string>;
+			return errors;
 		}
 	}
 }
