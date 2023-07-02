@@ -16,13 +16,11 @@ namespace ChatUI
 		public string APIKey { get; set; }
 		public string OrganizationID { get; set; }
 		public string ModelName { get; set; }
-		public string SystemMessage { get; set; }
-		public Settings(string apikey, string organizationID, string modelName, string systemMessage) 
+		public Settings(string apikey, string organizationID, string modelName) 
 		{
 			APIKey = apikey;
 			OrganizationID = organizationID;
 			ModelName = modelName;
-			SystemMessage = systemMessage;
 		}
 
 		public Settings() { }

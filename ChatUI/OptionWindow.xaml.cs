@@ -29,7 +29,6 @@ namespace ChatUI
 				TextBox_APIKey.Password= settings.APIKey;
 				TextBox_OrganizationID.Password = settings.OrganizationID;
 				TextBox_ModelName.Text = settings.ModelName;
-				TextBox_SytemPrompt.Text = settings.SystemMessage;
 			}
 		}
 
@@ -38,10 +37,9 @@ namespace ChatUI
 			string apiKey = TextBox_APIKey.Password;
 			string organizationID = TextBox_OrganizationID.Password;
 			string modelName = TextBox_ModelName.Text;
-			string systemMessage = TextBox_SytemPrompt.Text;
-			if (apiKey == null || systemMessage == null) return;
+			if (apiKey == null) return;
 			//セッティングファイルをセーブ
-			Settings settings = new Settings(apiKey, organizationID, modelName, systemMessage);
+			Settings settings = new Settings(apiKey, organizationID, modelName);
 			settings.SaveSettings();
 			this.Close();
 		}

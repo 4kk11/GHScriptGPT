@@ -14,10 +14,14 @@ using System.Windows.Forms;
 using System.Windows.Interop;
 using ChatUI;
 using ChatGPTConnection;
+using GHScriptGPT.Prompts;
+using static System.Net.Mime.MediaTypeNames;
+using System.Text;
+using GHScriptGPT.Scripts;
 
 namespace GHScriptGPT
 {
-	public class GHScriptGPT : GH_AssemblyPriority
+    public class GHScriptGPT : GH_AssemblyPriority
 	{
 		public override GH_LoadingInstruction PriorityLoad()
 		{
@@ -43,9 +47,8 @@ namespace GHScriptGPT
 
 			toolStripMenuItem.Click += (sender, e) =>
 			{
-				//チャットGUIを呼び出す
+				//call chat GUI
 				OpenChatUI();
-				//System.Windows.MessageBox.Show("Hello World!");
 			};
 
 			docEditor.MainMenuStrip.ResumeLayout(false);
@@ -56,15 +59,16 @@ namespace GHScriptGPT
 
 		private MainWindow OpenChatUI()
 		{
+			// Returns null if it is already open
 			if (IsWindowOpen<ChatUI.MainWindow>()) return null;
+
 			MainWindow window = new ChatUI.MainWindow();
 
-			//window.ResponseReceived -= ResponseRecieved2;
-			//window.ResponseReceived += ResponseRecieved2;
+			// Event fired when user's message is added
 			window.MessageAdded -= MessageAdded;
 			window.MessageAdded += MessageAdded;
 
-			//Rhinoのウィンドウを親に設定
+			// Set Rhino window as parent
 			var rhinoHandle = RhinoApp.MainWindowHandle();
 			var helper = new WindowInteropHelper(window);
 			helper.Owner = rhinoHandle;
@@ -82,36 +86,22 @@ namespace GHScriptGPT
 			return false;
 		}
 
-		private void ResponseRecieved2(ChatGPTResponseModel response)
-		{
-			Dictionary<string, string> jsonDict = response.GetJsonDict();
-			string conversation = jsonDict["conversation"];
-			string code = jsonDict["code"];
-
-			var forms = System.Windows.Forms.Application.OpenForms;
-			foreach (var form in forms)
-			{
-				if (form.GetType().Name != "GH_ScriptEditor") continue;
-				GH_ScriptEditor editor = form as GH_ScriptEditor;
-				GH_CodeBlocks codeBlocks = editor.GetSourceCode();
-				codeBlocks[3].AddLine($"//{conversation}");
-				var lines = code.Split('\n');
-				codeBlocks[3].AddLines(lines);
-				editor.SetSourceCode(codeBlocks);
-				break;
-			}
-
-		}
-
 		private async void MessageAdded(object sender, MessageEventArgs e)
 		{
-			MainWindow window = (MainWindow)sender;
-			string message = e.Message;
-			window.AddLoadingSpinner();
+			//todo: Editorが一つだけ開いているかどうかを確かめる
+			CurrentEditor editor = CurrentEditor.GetCurrentEditor();
 
+			MainWindow window = (MainWindow)sender;
+			string requestMessage = e.Message;
+			string baseCode = editor.GetCode_RunScript().CodeText;
+
+			string userPrompt = PromptTemplate.CreateUserPrompt(requestMessage, baseCode);
+			string systemPrompt = PromptTemplate.CreateSystemPrompt();
+
+			window.AddLoadingSpinner();
 			try
 			{
-				//APIキーをセッティングファイルから取得
+				// Get API key from settings file
 				Settings settings = Settings.LoadSettings();
 				if (settings == null)
 				{
@@ -121,9 +111,7 @@ namespace GHScriptGPT
 				string apiKey = settings.APIKey;
 				string organizationID = settings.OrganizationID;
 				string modelName = settings.ModelName;
-				string systemMessage = settings.SystemMessage;
 
-				// Check
 				if (apiKey == "")
 				{
 					System.Windows.MessageBox.Show("API key not found. Please set from the options.");
@@ -135,19 +123,25 @@ namespace GHScriptGPT
 					return;
 				}
 
-				var chatGPTConnector = new ChatGPTConnector(apiKey, organizationID, modelName, systemMessage);
-				var response = await chatGPTConnector.RequestAsync(message);
+				// API request
+				var chatGPTConnector = new ChatGPTConnector(apiKey, organizationID, modelName, systemPrompt);
+				var response = await chatGPTConnector.RequestAsync(userPrompt);
 
 				if (!response.isSuccess)
 				{
-
 					window.AddOtherMessage("API request failed. Settings may be wrong.", null, "ChatGPT");
 					return;
 				}
 
-				//返信をチャット欄に追加
-				//string conversationText = response.GetConversation();
-				string conversationText = response.GetMessage();
+				// Get json dictionary from response
+				Dictionary<string, string> jsonDict = response.GetJsonDict();
+				string codeText = jsonDict["code"];
+				string conversationText = jsonDict["conversation"];
+
+				// Apply response code to editor
+				ApplyCode(codeText, editor);
+
+				// Add reply to chat
 				string fullText = response.GetMessage();
 				window.AddOtherMessage(conversationText, fullText, "ChatGPT");
 			}
@@ -156,6 +150,13 @@ namespace GHScriptGPT
 				window.DeleteLoadingSpinner();
 			}
 			
+		}
+
+		private void ApplyCode(string codeText, CurrentEditor editor)
+		{
+			SouceCode souceCode = new SouceCode(codeText);
+			SouceCode extractedCode = souceCode.ExtractFunctionCode("private void RunScript");
+			editor.SetCode_RunScript(extractedCode);
 		}
 
 	}
