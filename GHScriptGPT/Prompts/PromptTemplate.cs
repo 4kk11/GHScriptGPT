@@ -46,5 +46,23 @@ namespace GHScriptGPT.Prompts
 			return result;
 		}
 
+		public static string CreateUserPrompt(string requestMessage, string baseCode)
+		{
+			PromptTemplate template = PromptTemplate.FromFile("user.txt");
+			Dictionary<string, string> replacements = new Dictionary<string, string>
+			{
+				{"request", requestMessage},
+				{"base", baseCode}
+			};
+			return template.FormatPrompt(replacements);
+		}
+
+		public static string CreateSystemPrompt()
+		{
+			PromptTemplate template = PromptTemplate.FromFile("system_ja.txt");
+			Dictionary<string, string> replacements = new Dictionary<string, string>();
+			return template.FormatPrompt(replacements);
+		}
+
 	}
 }

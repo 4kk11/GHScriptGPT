@@ -15,10 +15,13 @@ using System.Windows.Interop;
 using ChatUI;
 using ChatGPTConnection;
 using GHScriptGPT.Prompts;
+using static System.Net.Mime.MediaTypeNames;
+using System.Text;
+using GHScriptGPT.Scripts;
 
 namespace GHScriptGPT
 {
-	public class GHScriptGPT : GH_AssemblyPriority
+    public class GHScriptGPT : GH_AssemblyPriority
 	{
 		public override GH_LoadingInstruction PriorityLoad()
 		{
@@ -44,9 +47,8 @@ namespace GHScriptGPT
 
 			toolStripMenuItem.Click += (sender, e) =>
 			{
-				//チャットGUIを呼び出す
+				//call chat GUI
 				OpenChatUI();
-				//System.Windows.MessageBox.Show("Hello World!");
 			};
 
 			docEditor.MainMenuStrip.ResumeLayout(false);
@@ -57,13 +59,16 @@ namespace GHScriptGPT
 
 		private MainWindow OpenChatUI()
 		{
+			// Returns null if it is already open
 			if (IsWindowOpen<ChatUI.MainWindow>()) return null;
+
 			MainWindow window = new ChatUI.MainWindow();
 
+			// Event fired when user's message is added
 			window.MessageAdded -= MessageAdded;
 			window.MessageAdded += MessageAdded;
 
-			//Rhinoのウィンドウを親に設定
+			// Set Rhino window as parent
 			var rhinoHandle = RhinoApp.MainWindowHandle();
 			var helper = new WindowInteropHelper(window);
 			helper.Owner = rhinoHandle;
@@ -81,83 +86,22 @@ namespace GHScriptGPT
 			return false;
 		}
 
-		private void ResponseRecieved(ChatGPTResponseModel response)
-		{
-			//todo: RunScript(...){}を取り除く
-			Dictionary<string, string> jsonDict = response.GetJsonDict();
-			string conversation = jsonDict["conversation"];
-			string code = jsonDict["code"];
-
-			GH_ScriptEditor editor = GetCurrentEditor();
-			if(editor == null) return;
-
-			GH_CodeBlocks codeBlocks = editor.GetSourceCode();
-			codeBlocks[3].AddLine($"//{conversation}");
-			var lines = code.Split('\n');
-			codeBlocks[3].AddLines(lines);
-			editor.SetSourceCode(codeBlocks);
-
-
-		}
-
-		private string GetBaseCode()
-		{
-			GH_ScriptEditor editor = GetCurrentEditor();
-			if (editor == null) return null;
-			GH_CodeBlocks codeBlocks = editor.GetSourceCode();
-			var lines = codeBlocks[2].Lines;
-			lines = lines.Skip(lines.Count() - 2);
-			lines = lines.Concat(codeBlocks[3].Lines);
-			lines = lines.Append("}");
-			lines = lines.Select(text => text.TrimStart());
-			string baseCode = String.Join("\n", lines);
-			return baseCode;
-		}
-
-		private GH_ScriptEditor GetCurrentEditor()
-		{
-			var forms = System.Windows.Forms.Application.OpenForms;
-			foreach (var form in forms)
-			{
-				if (form.GetType().Name != "GH_ScriptEditor") continue;
-				GH_ScriptEditor editor = form as GH_ScriptEditor;
-				return editor;
-			}
-			return null;
-		}
-
-		private string CreateUserPrompt(string requestMessage, string baseCode)
-		{
-			PromptTemplate template = PromptTemplate.FromFile("user.txt");
-			Dictionary<string, string> replacements= new Dictionary<string, string> 
-			{
-				{"request", requestMessage},
-				{"base", baseCode}
-			};
-			return template.FormatPrompt(replacements);
-		}
-
-		private string CreateSystemPrompt()
-		{
-			PromptTemplate template = PromptTemplate.FromFile("system_ja.txt");
-			Dictionary<string, string> replacements = new Dictionary<string, string>();
-			return template.FormatPrompt(replacements);
-		}
-
 		private async void MessageAdded(object sender, MessageEventArgs e)
 		{
 			//todo: Editorが一つだけ開いているかどうかを確かめる
+			CurrentEditor editor = CurrentEditor.GetCurrentEditor();
 
 			MainWindow window = (MainWindow)sender;
 			string requestMessage = e.Message;
-			string baseCode = GetBaseCode();
+			string baseCode = editor.GetCode_RunScript().CodeText;
 
-			string userPrompt = CreateUserPrompt(requestMessage, baseCode);
+			string userPrompt = PromptTemplate.CreateUserPrompt(requestMessage, baseCode);
+			string systemPrompt = PromptTemplate.CreateSystemPrompt();
 
 			window.AddLoadingSpinner();
 			try
 			{
-				//Get API key from settings file
+				// Get API key from settings file
 				Settings settings = Settings.LoadSettings();
 				if (settings == null)
 				{
@@ -167,7 +111,6 @@ namespace GHScriptGPT
 				string apiKey = settings.APIKey;
 				string organizationID = settings.OrganizationID;
 				string modelName = settings.ModelName;
-				string systemMessage = CreateSystemPrompt();
 
 				if (apiKey == "")
 				{
@@ -181,21 +124,24 @@ namespace GHScriptGPT
 				}
 
 				// API request
-				var chatGPTConnector = new ChatGPTConnector(apiKey, organizationID, modelName, systemMessage);
+				var chatGPTConnector = new ChatGPTConnector(apiKey, organizationID, modelName, systemPrompt);
 				var response = await chatGPTConnector.RequestAsync(userPrompt);
 
 				if (!response.isSuccess)
 				{
-
 					window.AddOtherMessage("API request failed. Settings may be wrong.", null, "ChatGPT");
 					return;
 				}
 
-				// Apply to editor
-				ResponseRecieved(response);
+				// Get json dictionary from response
+				Dictionary<string, string> jsonDict = response.GetJsonDict();
+				string codeText = jsonDict["code"];
+				string conversationText = jsonDict["conversation"];
 
-				//Add reply to chat
-				string conversationText = response.GetConversation();
+				// Apply response code to editor
+				ApplyCode(codeText, editor);
+
+				// Add reply to chat
 				string fullText = response.GetMessage();
 				window.AddOtherMessage(conversationText, fullText, "ChatGPT");
 			}
@@ -204,6 +150,13 @@ namespace GHScriptGPT
 				window.DeleteLoadingSpinner();
 			}
 			
+		}
+
+		private void ApplyCode(string codeText, CurrentEditor editor)
+		{
+			SouceCode souceCode = new SouceCode(codeText);
+			SouceCode extractedCode = souceCode.ExtractFunctionCode("private void RunScript");
+			editor.SetCode_RunScript(extractedCode);
 		}
 
 	}
