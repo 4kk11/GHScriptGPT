@@ -38,10 +38,15 @@ If you do not have an editor open or have more than one editor open, you will re
 
 ## Features
 - ### Generate
+![04](https://github.com/4kk11/GHScriptGPT/assets/61794994/67214727-5286-436a-b057-0d23c426d97e)
 
 <br>
+
 - ### Code Completion
+![05](https://github.com/4kk11/GHScriptGPT/assets/61794994/22690f4d-130b-4380-9fe3-6359ae01ac55)
 
 <br>
+
 - ### Fix Error
+![06](https://github.com/4kk11/GHScriptGPT/assets/61794994/9fad7e49-bb4c-4e05-8941-cb6711f2e240)
 
