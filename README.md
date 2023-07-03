@@ -1,20 +1,22 @@
 # GHScriptGPT
 #### This plugin utilizes the OpenAI API functionality to generate source code for Grasshopper's C# scripting components.
-![image](https://github.com/4kk11/GHScriptGPT/assets/61794994/162de6bf-1f4a-4119-95fe-49fa4655d1f3)
+![01](https://github.com/4kk11/GHScriptGPT/assets/61794994/801e41b7-7060-420e-91bd-0dc9c8cf56de)
+
 
 <br>
 
 ## Installation
 1. Download the plugin files from the Releases section of this repository.
 2. Put it in the Grasshopper/Libraries folder.
+![02](https://github.com/4kk11/GHScriptGPT/assets/61794994/7eadcc6d-6ca7-4e72-875f-74bd6277983a)
 
 <br>
 
 ## Usage
 #### First, configure the API key and other settings from the gear button.   
 #### After setting the API key, make sure that Settings.xml is generated in the plugin folder.   
+![03](https://github.com/4kk11/GHScriptGPT/assets/61794994/859c164c-2523-40b6-826c-95598b1e1d0d)
 
-![image2](https://github.com/4kk11/GHScriptGPT/assets/61794994/9af14fe2-5a3f-4703-ac92-e8f88e29f7f6)
 
 Each setting item is described below.  
 
@@ -31,16 +33,16 @@ Each setting item is described below.
 #### Be sure to use a single C# script editor open. 
 If you do not have an editor open or have more than one editor open, you will receive a warning.
 
-![image3](https://github.com/4kk11/GHScriptGPT/assets/61794994/37e6ebb7-270a-412c-91b6-89bc1c8e544c)
+
 
 <br>
 
 ## Features
 - ### Generate
-![image6](https://github.com/4kk11/GHScriptGPT/assets/61794994/eb3090d4-ca77-45d7-8aea-16b216cdec68)
+
 <br>
 - ### Code Completion
-![image4](https://github.com/4kk11/GHScriptGPT/assets/61794994/3f5dc266-bc16-49db-aa5e-5e0da604590b)
+
 <br>
 - ### Fix Error
-![image5](https://github.com/4kk11/GHScriptGPT/assets/61794994/002025a6-4faa-4830-b683-784d17db55f0)
+
