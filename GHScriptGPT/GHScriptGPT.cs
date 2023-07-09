@@ -69,9 +69,11 @@ namespace GHScriptGPT
 			window.MessageAdded += MessageAdded;
 
 			// Set Rhino window as parent
-			var rhinoHandle = RhinoApp.MainWindowHandle();
+			var ghHandle = Grasshopper.Instances.DocumentEditor.Handle;
 			var helper = new WindowInteropHelper(window);
-			helper.Owner = rhinoHandle;
+			helper.Owner = ghHandle;
+
+			window.Topmost = false;
 
 			window.Show();
 			return window;
